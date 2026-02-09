@@ -175,52 +175,55 @@ def play_flight_animation():
 # -----------------------------------------------------------------------------
 
 def show_ticket():
-    # 使用套件強制滾動到頂部 (Y=0)
-    # key 的作用是：只要 key 改變，這個元件就會重新執行一次，達到滾動效果
+    # 使用套件強制滾動到頂部
     scroll_to_here(0, key="scroll_ticket")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     st.write("")
+    
+    # --- 機票 HTML (保持不變) ---
     st.markdown(f"""
     <div class="boarding-pass">
         <div class="pass-header"><h2>BOARDING PASS ✈️</h2></div>
         <div class="pass-body">
             <div class="pass-row">
-                <div><div class="pass-label">PASSENGER</div><div class="pass-value">最愛的妳 ❤️</div></div>
-                <div style="text-align:right;"><div class="pass-label">FLIGHT</div><div class="pass-value">LOVE-520</div></div>
+                <div><div class="pass-label">PASSENGER</div><div class="pass-value">藍悅慈</div></div>
+                <div style="text-align:right;"><div class="pass-label">FLIGHT</div><div class="pass-value">LOVE-99</div></div>
             </div>
             <div class="pass-row">
                 <div><div class="pass-label">FROM</div><div class="pass-value">我們的開始</div></div>
-                <div style="text-align:right;"><div class="pass-label">TO</div><div class="pass-value">永遠的未來</div></div>
+                <div style="text-align:right;"><div class="pass-label">TO</div><div class="pass-value">我們的未來</div></div>
             </div>
             <div class="pass-row">
-                <div><div class="pass-label">DATE</div><div class="pass-value">2023.TODAY</div></div>
-                <div style="text-align:right;"><div class="pass-label">SEAT</div><div class="pass-value">1A (My Heart)</div></div>
+                <div><div class="pass-label">DATE</div><div class="pass-value">2026/03/21</div></div>
+                <div style="text-align:right;"><div class="pass-label">SEAT</div><div class="pass-value">我的身邊</div></div>
             </div>
             <hr style="border-top: 2px dashed #ccc; margin: 20px 0;">
-            <p style="text-align:center; color:#888; font-size:14px;">*此旅程將帶妳從新竹出發，找回我們的回憶*</p>
+            <p style="text-align:center; color:#888; font-size:14px;">*此旅程將帶妳出發，找回我們的回憶*</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
     st.write("")
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # --- 修改重點：調整按鈕寬度與位置 ---
+    # 1. 改用 [1, 1, 1] 的比例，這樣中間的 column 寬度會比較剛好 (約佔螢幕 1/3)，不會太寬也不會太窄
+    col1, col2, col3 = st.columns([1, 0.2, 1])
+    
     with col2:
-        if st.button("🛫 CHECK IN (出發)", type="primary"):
+        # 2. 加上 use_container_width=True，讓按鈕強制填滿中間這個欄位，就會自動變寬且置中
+        if st.button("🛫 起飛", type="primary", use_container_width=True):
             play_flight_animation()
             st.session_state.stage = 1
             st.rerun()
+            
     st.markdown('</div>', unsafe_allow_html=True)
-
 def show_journey_step(index):
     # 使用 stage 作為 key，確保每一站切換時都會觸發滾動
     scroll_to_here(0, key=f"scroll_step_{index}")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
-    
-    st.progress(index / len(destinations), text=f"飛行進度: 第 {index} 站 / 共 {len(destinations)} 站")
     
     st.markdown(f"""<div class="glass-card"><h2 style="color:#2d3436; margin-bottom: 20px;">📍 {current_data['name']}</h2></div>""", unsafe_allow_html=True)
     st.write("")
