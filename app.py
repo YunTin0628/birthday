@@ -8,30 +8,50 @@ import time
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="Love Journey", page_icon="✈️", layout="wide")
 
-# === 旅程地點設定 ===
+# === 旅程地點設定 (修改重點：改用 album 結構) ===
 destinations = [
     {
         "name": "第一站：新竹的家",
-        "image": "images/image10.jpg",
-        "desc": "我們的旅程從這裡開始，這裡是我們最溫暖的小窩。"
+        "album": [
+            {
+                "image": "images/image10.jpg",
+                "desc": "這是我們的起點，還記得那天我們一起窩在沙發上..."
+            }
+        ]
     },
     {
         "name": "第二站：南寮",
-        "image": "images/image1.jpg",
-        "desc": "還記得那天我們去海邊吹風，雖然風有點大，但心情很放鬆。"
+        "album": [
+            {
+                "image": "images/image1.jpg",
+                "desc": "風很大的南寮，妳的頭髮都被吹亂了，但笑得很開心。"
+            }
+        ]
     },
     {
         "name": "第三站：板橋耶誕城",
-        "image": "images/image4.jpg",
-        "desc": "在滿滿的燈光下，妳的笑容比聖誕樹還要耀眼。"
+        # 這裡示範如何放多張照片配不同文字
+        "album": [
+            {
+                "image": "images/image4.jpg",
+                "desc": "耶誕城的燈光好美，但我覺得妳比燈光還美。"
+            },
+            {
+                "image": "images/image1.jpg", # 這裡可以換成另一張照片
+                "desc": "逛累了我們去吃了那間很好吃的餐廳，下次再去吃吧！"
+            }
+        ]
     },
     {
         "name": "終點站：回到新竹的家",
-        "image": "images/image17.jpg",
-        "desc": "繞了一圈，發現最想去的地方，其實就是有妳在的身邊。"
+        "album": [
+            {
+                "image": "images/image17.jpg",
+                "desc": "繞了一圈，發現最想去的地方，其實就是有妳在的身邊。"
+            }
+        ]
     },
 ]
-
 # -----------------------------------------------------------------------------
 # 2. CSS 樣式設計
 # -----------------------------------------------------------------------------
@@ -105,7 +125,6 @@ def play_flight_animation():
     
     with placeholder.container():
         # 這裡也要呼叫一次 scroll_to_here，確保動畫是在最上面播放
-        # 使用 unique key 確保每次都會觸發
         scroll_to_here(0, key=f"scroll_anim_{time.time()}")
         
         st.markdown(f"""
@@ -175,14 +194,11 @@ def play_flight_animation():
 # -----------------------------------------------------------------------------
 
 def show_ticket():
-    # 使用套件強制滾動到頂部
     scroll_to_here(0, key="scroll_ticket")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     st.write("")
-    
-    # --- 機票 HTML (保持不變) ---
     st.markdown(f"""
     <div class="boarding-pass">
         <div class="pass-header"><h2>BOARDING PASS ✈️</h2></div>
@@ -206,53 +222,122 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # --- 修改重點：調整按鈕寬度與位置 ---
-    # 1. 改用 [1, 1, 1] 的比例，這樣中間的 column 寬度會比較剛好 (約佔螢幕 1/3)，不會太寬也不會太窄
     col1, col2, col3 = st.columns([1, 0.2, 1])
-    
     with col2:
-        # 2. 加上 use_container_width=True，讓按鈕強制填滿中間這個欄位，就會自動變寬且置中
         if st.button("🛫 起飛", type="primary", use_container_width=True):
             play_flight_animation()
             st.session_state.stage = 1
             st.rerun()
-            
     st.markdown('</div>', unsafe_allow_html=True)
+
 def show_journey_step(index):
-    # 使用 stage 作為 key，確保每一站切換時都會觸發滾動
+    # 使用 stage 作為 key
     scroll_to_here(0, key=f"scroll_step_{index}")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
     
-    st.markdown(f"""<div class="glass-card"><h2 style="color:#2d3436; margin-bottom: 20px;">📍 {current_data['name']}</h2></div>""", unsafe_allow_html=True)
+    # 標題
+    st.markdown(f"""<div class="glass-card"><h2 style="color:#2d3436; margin:0;">📍 {current_data['name']}</h2></div>""", unsafe_allow_html=True)
     st.write("")
-    try:
-        img = Image.open(current_data['image'])
-        st.image(img, use_container_width=True)
-    except:
-        st.warning(f"找不到照片: {current_data['image']}")
+    
+    # === 核心相簿邏輯 ===
+    album = current_data.get("album", [])
+    
+    # 1. 初始化這一站的相片索引 (如果還沒有紀錄過，從第 0 張開始)
+    # 我們用 f"photo_idx_{index}" 來確保每一站的進度是分開紀錄的
+    idx_key = f"photo_idx_{index}"
+    if idx_key not in st.session_state:
+        st.session_state[idx_key] = 0
+    
+    current_photo_index = st.session_state[idx_key]
+    
+    # 確保索引不會超出範圍 (防呆)
+    if current_photo_index >= len(album):
+        current_photo_index = 0
+        
+    # 取得當前要顯示的那一組 (照片+文字)
+    current_item = album[current_photo_index]
+    
+    # 2. 顯示照片區域 (包含左右切換按鈕)
+    # 版面比例：[按鈕 1] [照片 10] [按鈕 1] -> 按鈕在兩側
+    col_prev, col_img, col_next = st.columns([1, 5, 1], gap="small", vertical_alignment="center")
+    
+    with col_prev:
+        # 如果不是第一張，顯示「上一張」按鈕
+        if len(album) > 1:
+            if st.button("❮", key=f"prev_{index}", help="上一張"):
+                # 切換邏輯：減 1，如果小於 0 就跳到最後一張 (循環播放)
+                st.session_state[idx_key] = (current_photo_index - 1) % len(album)
+                st.rerun()
 
+    with col_img:
+        # 顯示照片
+        try:
+            img = Image.open(current_item['image'])
+            # CSS Hack: 強制固定圖片高度，避免切換時版面跳動
+            # object-fit: cover 會自動裁切圖片填滿框框
+            st.markdown(
+                f"""
+                <style>
+                div[data-testid="stImage"] img {{
+                    height: 1000px; 
+                    object-fit: cover;
+                    border-radius: 15px;
+                }}
+                /* 手機版適配：高度改為自動或較小 */
+                @media (max-width: 600px) {{
+                    div[data-testid="stImage"] img {{
+                        height: 300px;
+                    }}
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.image(img, use_container_width=True)
+        except:
+            st.warning(f"缺少照片: {current_item['image']}")
+
+    with col_next:
+        # 如果不是最後一張，顯示「下一張」按鈕
+        if len(album) > 1:
+            if st.button("❯", key=f"next_{index}", help="下一張"):
+                # 切換邏輯：加 1，如果超過就跳回第一張
+                st.session_state[idx_key] = (current_photo_index + 1) % len(album)
+                st.rerun()
+
+    # 3. 顯示對應的文字
+    # 這裡會隨著上面的按鈕切換而改變
     st.write("")
-    st.markdown(f"""<div class="glass-card"><p style="font-size:20px; color:#555; line-height: 1.6;">{current_data['desc']}</p></div>""", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class="glass-card" style="min-height: 120px; display:flex; align-items:center; justify-content:center;">
+            <p style="font-size:20px; color:#555; margin:0;">
+                {current_item['desc']}
+            </p>
+            <br>
+            <span style="font-size:12px; color:#aaa; display:block; margin-top:10px;">
+                ({current_photo_index + 1} / {len(album)})
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
     st.write("")
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # === 下方按鈕區 (前往下一站) ===
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if index < len(destinations):
-            if st.button("✈️ 前往下一站"):
+            if st.button("✈️ 前往下一站", use_container_width=True):
                 play_flight_animation()
                 st.session_state.stage += 1
                 st.rerun()
         else:
-            if st.button("🏁 抵達終點 (按我)", type="primary"):
+            if st.button("🏁 抵達終點 (按我)", type="primary", use_container_width=True):
                 play_flight_animation()
                 st.session_state.stage = 999
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
 def show_final_surprise():
-    # 最後一頁也要滾動
     scroll_to_here(0, key="scroll_final")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
@@ -287,7 +372,7 @@ def show_final_surprise():
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🔄 再飛一次"):
+        if st.button("🔄 再飛一次", use_container_width=True):
             st.session_state.stage = 0
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
