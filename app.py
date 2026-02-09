@@ -1,5 +1,5 @@
 import streamlit as st
-import streamlit.components.v1 as components
+from streamlit_scroll_to_top import scroll_to_here
 from PIL import Image
 import time
 
@@ -97,42 +97,16 @@ if 'stage' not in st.session_state:
     st.session_state.stage = 0
 
 # -----------------------------------------------------------------------------
-# 4. 輔助函式：強制滾動到頂部 (JavaScript Hack - 暴力版)
-# -----------------------------------------------------------------------------
-def scroll_to_top():
-    """
-    這個 JavaScript 會嘗試抓取所有可能的滾動容器，全部設為 0。
-    """
-    js = """
-    <script>
-        // 方案 1: 針對 Streamlit 主視圖容器 (最常見)
-        var viewContainer = window.parent.document.querySelector("[data-testid='stAppViewContainer']");
-        if (viewContainer) {
-            viewContainer.scrollTo({top: 0, behavior: 'instant'});
-        }
-        
-        // 方案 2: 針對傳統 .main 容器
-        var main = window.parent.document.querySelector(".main");
-        if (main) {
-            main.scrollTo({top: 0, behavior: 'instant'});
-        }
-        
-        // 方案 3: 針對整個視窗
-        window.parent.window.scrollTo({top: 0, behavior: 'instant'});
-    </script>
-    """
-    components.html(js, height=0)
-
-# -----------------------------------------------------------------------------
-# 5. 核心魔法：CSS 手刻飛機進度條動畫
+# 4. 核心魔法：CSS 手刻飛機進度條動畫
 # -----------------------------------------------------------------------------
 def play_flight_animation():
     placeholder = st.empty()
     animation_duration = 3.5
     
     with placeholder.container():
-        # 這裡也要呼叫一次 scroll_to_top，確保動畫是在最上面播放
-        scroll_to_top()
+        # 這裡也要呼叫一次 scroll_to_here，確保動畫是在最上面播放
+        # 使用 unique key 確保每次都會觸發
+        scroll_to_here(0, key=f"scroll_anim_{time.time()}")
         
         st.markdown(f"""
             <style>
@@ -197,11 +171,14 @@ def play_flight_animation():
     placeholder.empty()
 
 # -----------------------------------------------------------------------------
-# 6. 頁面邏輯
+# 5. 頁面邏輯
 # -----------------------------------------------------------------------------
 
 def show_ticket():
-    scroll_to_top()
+    # 使用套件強制滾動到頂部 (Y=0)
+    # key 的作用是：只要 key 改變，這個元件就會重新執行一次，達到滾動效果
+    scroll_to_here(0, key="scroll_ticket")
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     st.write("")
@@ -237,7 +214,9 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
-    scroll_to_top()
+    # 使用 stage 作為 key，確保每一站切換時都會觸發滾動
+    scroll_to_here(0, key=f"scroll_step_{index}")
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
     
@@ -270,7 +249,9 @@ def show_journey_step(index):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_final_surprise():
-    scroll_to_top()
+    # 最後一頁也要滾動
+    scroll_to_here(0, key="scroll_final")
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
     st.markdown("""
@@ -309,7 +290,7 @@ def show_final_surprise():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 7. 主程式流程控制
+# 6. 主程式流程控制
 # -----------------------------------------------------------------------------
 if st.session_state.stage == 0:
     show_ticket()
