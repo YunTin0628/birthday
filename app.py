@@ -97,21 +97,30 @@ if 'stage' not in st.session_state:
     st.session_state.stage = 0
 
 # -----------------------------------------------------------------------------
-# 4. 輔助函式：強制滾動到頂部 (JavaScript Hack)
+# 4. 輔助函式：強制滾動到頂部 (JavaScript Hack - 暴力版)
 # -----------------------------------------------------------------------------
 def scroll_to_top():
     """
-    透過 JavaScript 強制將頁面捲軸拉回最上方。
-    Streamlit 預設換頁不會回到頂部，所以需要這個 Hack。
+    這個 JavaScript 會嘗試抓取所有可能的滾動容器，全部設為 0。
     """
     js = """
     <script>
-        var body = window.parent.document.querySelector(".main");
-        if (body) { body.scrollTop = 0; }
-        window.scrollTo(0, 0);
+        // 方案 1: 針對 Streamlit 主視圖容器 (最常見)
+        var viewContainer = window.parent.document.querySelector("[data-testid='stAppViewContainer']");
+        if (viewContainer) {
+            viewContainer.scrollTo({top: 0, behavior: 'instant'});
+        }
+        
+        // 方案 2: 針對傳統 .main 容器
+        var main = window.parent.document.querySelector(".main");
+        if (main) {
+            main.scrollTo({top: 0, behavior: 'instant'});
+        }
+        
+        // 方案 3: 針對整個視窗
+        window.parent.window.scrollTo({top: 0, behavior: 'instant'});
     </script>
     """
-    # height=0 讓它隱藏起來不佔空間
     components.html(js, height=0)
 
 # -----------------------------------------------------------------------------
@@ -122,6 +131,9 @@ def play_flight_animation():
     animation_duration = 3.5
     
     with placeholder.container():
+        # 這裡也要呼叫一次 scroll_to_top，確保動畫是在最上面播放
+        scroll_to_top()
+        
         st.markdown(f"""
             <style>
             .flight-overlay {{
@@ -185,12 +197,11 @@ def play_flight_animation():
     placeholder.empty()
 
 # -----------------------------------------------------------------------------
-# 6. 頁面邏輯 (每一頁開頭都加上 scroll_to_top)
+# 6. 頁面邏輯
 # -----------------------------------------------------------------------------
 
 def show_ticket():
-    scroll_to_top() # <--- 加入這行：強制回到頂部
-    
+    scroll_to_top()
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     st.write("")
@@ -226,8 +237,7 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
-    scroll_to_top() # <--- 加入這行：強制回到頂部
-    
+    scroll_to_top()
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
     
@@ -260,8 +270,7 @@ def show_journey_step(index):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_final_surprise():
-    scroll_to_top() # <--- 加入這行：強制回到頂部
-    
+    scroll_to_top()
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
     st.markdown("""
