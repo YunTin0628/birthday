@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from PIL import Image
 import time
 
@@ -46,7 +47,7 @@ st.markdown("""
         margin: 0 auto;
     }
     
-    /* 機票與卡片樣式 (保持原本設計) */
+    /* 機票與卡片樣式 */
     .boarding-pass {
         background-color: white;
         border-radius: 16px;
@@ -96,48 +97,55 @@ if 'stage' not in st.session_state:
     st.session_state.stage = 0
 
 # -----------------------------------------------------------------------------
-# 4. 核心魔法：CSS 手刻飛機進度條動畫
+# 4. 輔助函式：強制滾動到頂部 (JavaScript Hack)
+# -----------------------------------------------------------------------------
+def scroll_to_top():
+    """
+    透過 JavaScript 強制將頁面捲軸拉回最上方。
+    Streamlit 預設換頁不會回到頂部，所以需要這個 Hack。
+    """
+    js = """
+    <script>
+        var body = window.parent.document.querySelector(".main");
+        if (body) { body.scrollTop = 0; }
+        window.scrollTo(0, 0);
+    </script>
+    """
+    # height=0 讓它隱藏起來不佔空間
+    components.html(js, height=0)
+
+# -----------------------------------------------------------------------------
+# 5. 核心魔法：CSS 手刻飛機進度條動畫
 # -----------------------------------------------------------------------------
 def play_flight_animation():
-    """ 
-    顯示全螢幕遮罩，裡面有一個 CSS 動畫：
-    飛機圖示會隨著進度條從左跑到右。
-    """
     placeholder = st.empty()
-    
-    # 動畫時間 (秒)
     animation_duration = 3.5
     
     with placeholder.container():
         st.markdown(f"""
             <style>
-            /* 1. 全螢幕遮罩 */
             .flight-overlay {{
                 position: fixed;
                 top: 0;
                 left: 0;
                 width: 100vw;
                 height: 100vh;
-                background: rgba(255, 255, 255, 0.95); /* 半透明白底 */
+                background: rgba(255, 255, 255, 0.95);
                 z-index: 999999;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
             }}
-            
-            /* 2. 進度條外框 */
             .progress-track {{
                 width: 70%;
                 max-width: 600px;
                 height: 10px;
                 background-color: #e0e0e0;
                 border-radius: 10px;
-                position: relative; /* 讓飛機可以根據這裡定位 */
+                position: relative;
                 margin-bottom: 20px;
             }}
-            
-            /* 3. 會跑的顏色條 (內餡) */
             .progress-fill {{
                 height: 100%;
                 background: linear-gradient(90deg, #FF6B6B, #FF8E53);
@@ -145,18 +153,14 @@ def play_flight_animation():
                 width: 0%;
                 animation: fillProgress {animation_duration}s linear forwards;
             }}
-            
-            /* 4. 飛機圖示 (絕對定位) */
             .airplane-icon {{
                 position: absolute;
-                top: -25px; /* 讓飛機浮在線條上面一點點 */
+                top: -25px;
                 left: 0%;
                 font-size: 40px;
-                transform: translateX(-50%) rotate(45deg); /* 修正飛機角度 */
+                transform: translateX(-50%) rotate(45deg);
                 animation: movePlane {animation_duration}s linear forwards;
             }}
-            
-            /* 5. 雲朵裝飾 (選用) */
             .loading-text {{
                 font-size: 24px;
                 color: #555;
@@ -164,44 +168,29 @@ def play_flight_animation():
                 margin-top: 20px;
                 animation: fadeText 1s infinite alternate;
             }}
-
-            /* --- 動畫關鍵影格 (Keyframes) --- */
-            @keyframes fillProgress {{
-                0% {{ width: 0%; }}
-                100% {{ width: 100%; }}
-            }}
-            
-            @keyframes movePlane {{
-                0% {{ left: 0%; }}
-                100% {{ left: 100%; }}
-            }}
-            
-            @keyframes fadeText {{
-                from {{ opacity: 0.6; }}
-                to {{ opacity: 1; }}
-            }}
+            @keyframes fillProgress {{ 0% {{ width: 0%; }} 100% {{ width: 100%; }} }}
+            @keyframes movePlane {{ 0% {{ left: 0%; }} 100% {{ left: 100%; }} }}
+            @keyframes fadeText {{ from {{ opacity: 0.6; }} to {{ opacity: 1; }} }}
             </style>
-
             <div class="flight-overlay">
                 <div class="progress-track">
                     <div class="progress-fill"></div>
                     <div class="airplane-icon">✈️</div>
                 </div>
-                
-                正在飛往下一站...
+                <div class="loading-text">正在飛往下一站...</div>
             </div>
         """, unsafe_allow_html=True)
-        
-        # Python 暫停，等待 CSS 動畫跑完
         time.sleep(animation_duration)
         
     placeholder.empty()
 
 # -----------------------------------------------------------------------------
-# 5. 頁面邏輯
+# 6. 頁面邏輯 (每一頁開頭都加上 scroll_to_top)
 # -----------------------------------------------------------------------------
 
 def show_ticket():
+    scroll_to_top() # <--- 加入這行：強制回到頂部
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     st.write("")
@@ -237,6 +226,8 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
+    scroll_to_top() # <--- 加入這行：強制回到頂部
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
     
@@ -269,6 +260,8 @@ def show_journey_step(index):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_final_surprise():
+    scroll_to_top() # <--- 加入這行：強制回到頂部
+    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
     st.markdown("""
@@ -307,7 +300,7 @@ def show_final_surprise():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 6. 主程式流程控制
+# 7. 主程式流程控制
 # -----------------------------------------------------------------------------
 if st.session_state.stage == 0:
     show_ticket()
