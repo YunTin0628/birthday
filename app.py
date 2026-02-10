@@ -355,7 +355,7 @@ def show_journey_step(index):
             /* 手機上再縮小一點，避免滑動太長 */
             @media (max-width: 600px) {{
                 div[data-testid="stImage"] img {{
-                    max-height: 500px;
+                    max-height: 700px;
                 }}
             }}
             </style>
