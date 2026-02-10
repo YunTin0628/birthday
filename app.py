@@ -478,7 +478,7 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
-    scroll_to_here(0, key=f"scroll_step_{index}")
+    scroll_to_here(0, key=f"scroll_to_top_at_stage_{st.session_state.stage}")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
