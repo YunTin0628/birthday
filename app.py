@@ -349,13 +349,13 @@ def show_journey_step(index):
             div[data-testid="stImage"] img {{
                 max-height: 1200px;
                 width: 100%;
-                object-fit: cover;
+                object-fit: contain;
                 border-radius: 15px;
             }}
             /* 手機上再縮小一點，避免滑動太長 */
             @media (max-width: 600px) {{
                 div[data-testid="stImage"] img {{
-                    max-height: 1000px;
+                    max-height: 500px;
                 }}
             }}
             </style>
