@@ -509,7 +509,7 @@ def show_journey_step(index):
             st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; margin-top: 5px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
-            if st.button("❯", key=f"next_{index}", use_container_width=True):
+            if st.button("❯", key=f"next_{index}", use_container_width=False):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
