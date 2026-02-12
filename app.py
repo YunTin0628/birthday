@@ -531,7 +531,7 @@ def show_journey_step(index):
     if len(album) > 1:
         # 使用 5 個欄位：[空白] [上一張] [頁碼] [下一張] [空白]
         # 比例 [3, 1, 2, 1, 3] 利用兩側的大空白把中間內容擠在正中間
-        c_space_l, c_prev, c_info, c_next, c_space_r = st.columns([3, 1, 2, 1, 3], gap="small", vertical_alignment="center")
+        c_space_l, c_prev, c_info, c_next, c_space_r = st.columns([1, 3, 4, 3, 1], gap="small", vertical_alignment="center")
         
         with c_prev:
             if st.button("❮", key=f"prev_{index}", use_container_width=True):
@@ -546,7 +546,7 @@ def show_journey_step(index):
             if st.button("❯", key=f"next_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
-                
+
     # 3. 文字內容
     st.write("")
     st.markdown(f"""
