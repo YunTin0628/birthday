@@ -500,7 +500,7 @@ def show_journey_step(index):
         c_prev, c_info, c_next = st.columns(3, gap="small", vertical_alignment="center")
         
         with c_prev:
-            if st.button("❮", key=f"prev_{index}", use_container_width=True):
+            if st.button("❮", key=f"prev_{index}", use_container_width=False):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
