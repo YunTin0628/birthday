@@ -527,25 +527,26 @@ def show_journey_step(index):
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 (移到照片下方)
-    # 版面：[上一張] [頁碼] [下一張]
+    # 2. 導航按鈕 (優化：使用 5 欄位讓按鈕緊湊置中)
     if len(album) > 1:
-        # 使用 gap="small" 讓按鈕緊湊一點
-        b_prev, b_info, b_next = st.columns([1, 2, 1], gap="small", vertical_alignment="center")
+        # 使用 5 個欄位：[空白] [上一張] [頁碼] [下一張] [空白]
+        # 比例 [3, 1, 2, 1, 3] 利用兩側的大空白把中間內容擠在正中間
+        c_space_l, c_prev, c_info, c_next, c_space_r = st.columns([3, 1, 2, 1, 3], gap="small", vertical_alignment="center")
         
-        with b_prev:
+        with c_prev:
             if st.button("❮", key=f"prev_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
-        with b_info:
-            st.markdown(f"<p style='text-align:center; color:#aaa; margin:0;'>{current_photo_index + 1} / {len(album)}</p>", unsafe_allow_html=True)
+        with c_info:
+            # 頁碼文字，加上 margin-top 讓它跟按鈕在視覺上更對齊
+            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; margin-top: 5px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
-        with b_next:
+        with c_next:
             if st.button("❯", key=f"next_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
-
+                
     # 3. 文字內容
     st.write("")
     st.markdown(f"""
