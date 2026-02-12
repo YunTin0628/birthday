@@ -315,8 +315,8 @@ st.markdown("""
         
         /* 強制修正圖片容器高度，避免手機版太長 */
         div[data-testid="stImage"] img {
-            max-height: 550px !important;
-            object-fit: contain !important;
+            max-height: 550px !important; 
+            object-fit: contain !important; 
         }
     }
     </style>
@@ -336,6 +336,7 @@ def play_flight_animation():
     animation_duration = 3.5
     
     with placeholder.container():
+        # 換站時強制置頂
         scroll_to_here(0, key=f"scroll_anim_{time.time()}")
         
         st.markdown(f"""
@@ -410,7 +411,6 @@ def show_ticket():
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     
-    # 這裡的 HTML 已經配合上面的 CSS 手機版優化了
     st.markdown(f"""
     <div class="boarding-pass">
         <div class="pass-header"><h2>BOARDING PASS ✈️</h2></div>
@@ -435,8 +435,8 @@ def show_ticket():
     st.write("")
 
     # === 手機版起飛按鈕修正 ===
-    # 使用 [0.05, 0.9, 0.05] 讓中間夠寬，按鈕就會乖乖在中間
-    col1, col2, col3 = st.columns([0.05, 0.9, 0.05])
+    # 使用 [1, 30, 1] 確保中間欄位夠大，絕對不堆疊
+    col1, col2, col3 = st.columns([1, 30, 1])
     with col2:
         if st.button("🛫 起飛", type="primary", use_container_width=True):
             play_flight_animation()
@@ -463,19 +463,19 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 (CSS Hack 確保圖片在手機上不會過大)
+    # 1. 顯示照片
     try:
         img = Image.open(current_item['image'])
         st.markdown(
             f"""
             <style>
             div[data-testid="stImage"] img {{
-                max-height: 1200px;
+                max-height: 600px;
                 width: 100%;
                 object-fit: contain;
                 border-radius: 15px;
             }}
-            /* 手機版：放寬高度，確保人物不被裁切 */
+            /* 手機版：放寬高度 */
             @media (max-width: 600px) {{
                 div[data-testid="stImage"] img {{
                     max-height: 550px !important;
@@ -486,17 +486,18 @@ def show_journey_step(index):
             """,
             unsafe_allow_html=True,
         )
+        # 用中間大欄位限制寬度
         c1, c2, c3 = st.columns([1, 20, 1]) 
         with c2:
             st.image(img, use_container_width=True)
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 (手機版排版修正)
+    # 2. 導航按鈕 (手機版終極修正)
     if len(album) > 1:
-        # === 重點修正：改回 3 個欄位 [1, 2, 1] ===
-        # 這是在手機上顯示「左按鈕 - 文字 - 右按鈕」最穩定、不堆疊的黃金比例
-        c_prev, c_info, c_next = st.columns([1, 2, 1], gap="small", vertical_alignment="center")
+        # === 重點修正：改用 st.columns(3) 等寬欄位 ===
+        # 這是手機上最不容易出錯的排版，三個欄位寬度一樣，會乖乖排一排
+        c_prev, c_info, c_next = st.columns(3, gap="small", vertical_alignment="center")
         
         with c_prev:
             if st.button("❮", key=f"prev_{index}", use_container_width=True):
@@ -504,6 +505,7 @@ def show_journey_step(index):
                 st.rerun()
         
         with c_info:
+            # 頁碼文字
             st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; margin-top: 5px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
@@ -522,9 +524,8 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
-    # 下一步按鈕
-    # 這裡也改成 [0.05, 0.9, 0.05] 確保手機上寬度足夠且不堆疊
-    col1, col2, col3 = st.columns([0.05, 0.9, 0.05])
+    # 下一步按鈕：同樣使用 [1, 30, 1] 確保不跑版
+    col1, col2, col3 = st.columns([1, 30, 1])
     with col2:
         if index < len(destinations):
             if st.button("✈️ 下一站", use_container_width=True):
@@ -572,7 +573,7 @@ def show_final_surprise():
     st.write("")
 
     # 重新開始按鈕
-    col1, col2, col3 = st.columns([0.05, 0.9, 0.05])
+    col1, col2, col3 = st.columns([1, 30, 1])
     with col2:
         if st.button("🔄 再飛一次", use_container_width=True):
             st.session_state.stage = 0
