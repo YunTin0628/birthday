@@ -362,14 +362,7 @@ st.markdown("""
     }
     </style>
 
-    <div class="floating-hearts">
-        <div class="heart" style="left: 10%; animation-duration: 8s; animation-delay: 1s;">❤️</div>
-        <div class="heart" style="left: 30%; animation-duration: 12s; animation-delay: 4s;">💖</div>
-        <div class="heart" style="left: 70%; animation-duration: 15s; animation-delay: 2s;">❤️</div>
-        <div class="heart" style="left: 90%; animation-duration: 10s; animation-delay: 5s;">💗</div>
-        <div class="heart" style="left: 15%; animation-duration: 10s; animation-delay: 2.5s;">❤️</div>
-        <div class="heart" style="left: 85%; animation-duration: 11s; animation-delay: 0.5s;">💖</div>
-    </div>
+    
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
