@@ -378,6 +378,9 @@ st.markdown("""
 if 'stage' not in st.session_state:
     st.session_state.stage = 0
 
+if 'prev_stage' not in st.session_state:
+    st.session_state.prev_stage = -1
+
 # -----------------------------------------------------------------------------
 # 4. 核心魔法：CSS 手刻飛機進度條動畫
 # -----------------------------------------------------------------------------
@@ -386,6 +389,7 @@ def play_flight_animation():
     animation_duration = 3.5
     
     with placeholder.container():
+        # 飛機動畫時固定滑到頂部
         scroll_to_here(0, key=f"scroll_anim_{time.time()}")
         
         st.markdown(f"""
@@ -455,8 +459,6 @@ def play_flight_animation():
 # -----------------------------------------------------------------------------
 
 def show_ticket():
-    scroll_to_here(0, key="scroll_ticket")
-    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.write("")
     
@@ -492,8 +494,6 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
-    scroll_to_here(0, key=f"scroll_to_top_at_stage_{st.session_state.stage}")
-    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     current_data = destinations[index - 1]
     
@@ -537,7 +537,7 @@ def show_journey_step(index):
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 (強制橫排版本下使用 3 欄位最穩)
+    # 2. 導航按鈕
     if len(album) > 1:
         c_prev, c_info, c_next = st.columns([1, 2, 1], gap="small", vertical_alignment="center")
         
@@ -581,8 +581,6 @@ def show_journey_step(index):
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_final_surprise():
-    scroll_to_here(0, key="scroll_final")
-    
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
     
@@ -594,13 +592,11 @@ def show_final_surprise():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # === 新增：壓軸照片區塊 ===
-    # 請把下面這行的 "images/YOUR_FINAL_PHOTO.jpg" 換成你實際想放的照片檔名
+    # 壓軸照片區塊
     final_photo_path = "images/final.jpg" 
     
     try:
         img = Image.open(final_photo_path)
-        # 用一個 glass-card 把照片包起來，讓它有好看的白底毛玻璃邊框
         st.markdown('<div class="glass-card" style="padding: 10px;">', unsafe_allow_html=True)
         st.image(img, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -616,9 +612,18 @@ def show_final_surprise():
             st.session_state.stage = 0
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
 # -----------------------------------------------------------------------------
-# 6. 主程式流程控制
+# 6. 主程式流程控制 (核心置頂修正區)
 # -----------------------------------------------------------------------------
+
+# === 核心防禦：只有在「站點變更」時，才觸發置頂 ===
+if st.session_state.stage != st.session_state.prev_stage:
+    # 發現站點改變，才注入 scroll_to_here
+    scroll_to_here(0, key=f"force_scroll_top_stage_{st.session_state.stage}")
+    # 更新記憶，這樣下次如果是同站切換照片，就不會再進來這裡
+    st.session_state.prev_stage = st.session_state.stage
+
 if st.session_state.stage == 0:
     show_ticket()
 elif 1 <= st.session_state.stage <= len(destinations):
