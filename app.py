@@ -109,7 +109,7 @@ destinations = [
         "album": [
             {
                 "image": "images/image12.jpg",
-                "desc": "雖然臨近期末考了，但我們還是想要去逛耶誕城，於是說好先去圖書館認真讀書。雖中途在榜帽T的繩子，有時還不認真，但起碼是乖乖讀到晚上，趕快去耶誕城一起逛逛。"
+                "desc": "雖然臨近期末考了，但我們還是想要去逛耶誕城，於是說好先去圖書館認真讀書。雖然中途在綁帽T的繩子，有時還不認真，但起碼是乖乖讀到晚上，趕快去耶誕城一起逛逛。"
             },
             {
                 "image": "images/image14.jpg",
@@ -242,7 +242,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (包含手機版優化)
+# 2. CSS 樣式設計 (包含愛心特效與手機版優化)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -251,42 +251,73 @@ st.markdown("""
         background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
         background-attachment: fixed;
     }
+    
+    /* === 新增：漂浮愛心特效 CSS === */
+    .floating-hearts {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none; /* 絕對不能擋到滑鼠/手指點擊 */
+        z-index: 0; /* 讓愛心在最底層背景上，但不會蓋住卡片 */
+        overflow: hidden;
+    }
+    .heart {
+        position: absolute;
+        bottom: -10%;
+        opacity: 0;
+        font-size: 24px;
+        animation-name: floatUp;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(0.5); opacity: 0; }
+        10% { opacity: 0.6; }
+        80% { opacity: 0.6; }
+        100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+    }
+
+    /* 確保主要內容在愛心前面 */
     .main-container {
         max-width: 800px;
         margin: 0 auto;
-        padding: 10px; /* 增加內距避免貼邊 */
+        padding: 10px;
+        position: relative;
+        z-index: 10; 
     }
     
-    /* 機票樣式 - 手機版優化 */
+    /* 機票樣式 */
     .boarding-pass {
         background-color: white;
         border-radius: 16px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         padding: 0;
         margin: 20px auto;
-        width: 95%;        /* 手機上佔寬度 95% */
-        max-width: 500px;  /* 電腦上最大 500px */
+        width: 95%;
+        max-width: 500px;
         position: relative;
+        z-index: 10;
     }
     
-    /* 玻璃卡片 - 手機版優化 */
+    /* 玻璃卡片 */
     .glass-card {
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
         border-radius: 20px;
-        padding: 20px;       /* 手機版縮小內距 */
+        padding: 20px;
         margin-top: 20px;
-        width: 100%;         /* 強制不超出螢幕 */
-        box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+        width: 100%;
+        box-sizing: border-box;
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
         text-align: center;
+        z-index: 10;
     }
 
     .pass-header { background-color: #FF6B6B; color: white; padding: 15px; text-align: center; border-bottom: 2px dashed #eee; }
     .pass-body { padding: 20px; color: #555; }
     .pass-row { display: flex; justify-content: space-between; margin-bottom: 15px; }
-    
-    /* 字體大小響應式調整 */
     .pass-label { font-size: 12px; color: #aaa; text-transform: uppercase; }
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
@@ -298,6 +329,7 @@ st.markdown("""
         padding: 10px 0;
         font-size: 16px;
         transition: transform 0.2s;
+        z-index: 10;
     }
     .stButton>button:hover { transform: scale(1.05); }
     
@@ -313,13 +345,31 @@ st.markdown("""
         .pass-body { padding: 15px; }
         .glass-card { padding: 15px; margin-top: 15px; }
         
-        /* 強制修正圖片容器高度，避免手機版太長 */
         div[data-testid="stImage"] img {
             max-height: 550px !important; 
             object-fit: contain !important; 
         }
+
+        /* 強制按鈕橫排 (解決堆疊問題) */
+        [data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+        }
+        [data-testid="column"] {
+            flex: 1 1 auto !important;
+            min-width: 0px !important; 
+        }
     }
     </style>
+
+    <div class="floating-hearts">
+        <div class="heart" style="left: 10%; animation-duration: 8s; animation-delay: 1s;">❤️</div>
+        <div class="heart" style="left: 30%; animation-duration: 12s; animation-delay: 4s;">💖</div>
+        <div class="heart" style="left: 70%; animation-duration: 15s; animation-delay: 2s;">❤️</div>
+        <div class="heart" style="left: 90%; animation-duration: 10s; animation-delay: 5s;">💗</div>
+        <div class="heart" style="left: 15%; animation-duration: 10s; animation-delay: 2.5s;">❤️</div>
+        <div class="heart" style="left: 85%; animation-duration: 11s; animation-delay: 0.5s;">💖</div>
+    </div>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
@@ -336,7 +386,6 @@ def play_flight_animation():
     animation_duration = 3.5
     
     with placeholder.container():
-        # 換站時強制置頂
         scroll_to_here(0, key=f"scroll_anim_{time.time()}")
         
         st.markdown(f"""
@@ -434,8 +483,6 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # === 手機版起飛按鈕修正 ===
-    # 使用 [1, 30, 1] 確保中間欄位夠大，絕對不堆疊
     col1, col2, col3 = st.columns([1, 30, 1])
     with col2:
         if st.button("🛫 起飛", type="primary", use_container_width=True):
@@ -445,7 +492,6 @@ def show_ticket():
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_journey_step(index):
-    # 使用 stage 作為 key
     scroll_to_here(0, key=f"scroll_to_top_at_stage_{st.session_state.stage}")
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
@@ -475,7 +521,6 @@ def show_journey_step(index):
                 object-fit: contain;
                 border-radius: 15px;
             }}
-            /* 手機版：放寬高度 */
             @media (max-width: 600px) {{
                 div[data-testid="stImage"] img {{
                     max-height: 550px !important;
@@ -486,30 +531,26 @@ def show_journey_step(index):
             """,
             unsafe_allow_html=True,
         )
-        # 用中間大欄位限制寬度
         c1, c2, c3 = st.columns([1, 20, 1]) 
         with c2:
             st.image(img, use_container_width=True)
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 (手機版終極修正)
+    # 2. 導航按鈕 (強制橫排版本下使用 3 欄位最穩)
     if len(album) > 1:
-        # === 重點修正：改用 st.columns(3) 等寬欄位 ===
-        # 這是手機上最不容易出錯的排版，三個欄位寬度一樣，會乖乖排一排
-        c_prev, c_info, c_next = st.columns(3, gap="small", vertical_alignment="center")
+        c_prev, c_info, c_next = st.columns([1, 2, 1], gap="small", vertical_alignment="center")
         
         with c_prev:
-            if st.button("❮", key=f"prev_{index}", use_container_width=False):
+            if st.button("❮", key=f"prev_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
         with c_info:
-            # 頁碼文字
             st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; margin-top: 5px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
-            if st.button("❯", key=f"next_{index}", use_container_width=False):
+            if st.button("❯", key=f"next_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
@@ -524,7 +565,7 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
-    # 下一步按鈕：同樣使用 [1, 30, 1] 確保不跑版
+    # 下一步按鈕
     col1, col2, col3 = st.columns([1, 30, 1])
     with col2:
         if index < len(destinations):
@@ -533,7 +574,7 @@ def show_journey_step(index):
                 st.session_state.stage += 1
                 st.rerun()
         else:
-            if st.button("🏁 抵達終點", type="primary", use_container_width=True):
+            if st.button("旅程結束", type="primary", use_container_width=True):
                 play_flight_animation()
                 st.session_state.stage = 999
                 st.rerun()
@@ -544,32 +585,28 @@ def show_final_surprise():
     
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
+    
+    # 標題區塊
     st.markdown("""
         <div class="glass-card">
-            <h1 style="color:#FF6B6B; font-size: 32px;">🎂 HAPPY BIRTHDAY! 🎂</h1>
-            <p style="font-size: 20px;">親愛的，生日快樂！</p>
-            <br>
-            <img src="https://media.giphy.com/media/l0Iy4ppWvwQ4SXPxK/giphy.gif" width="100%" style="border-radius:10px;">
+            <h1 style="color:#FF6B6B; font-size: 32px; margin: 0;">💗 情人節快樂! 💗</h1>
         </div>
     """, unsafe_allow_html=True)
-
     st.write("")
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.write("### 💌 給妳的一封信")
-    letter = """
-    親愛的，
+
+    # === 新增：壓軸照片區塊 ===
+    # 請把下面這行的 "images/YOUR_FINAL_PHOTO.jpg" 換成你實際想放的照片檔名
+    final_photo_path = "images/final.jpg" 
     
-    這趟旅程雖然短暫，就像我們這 5 個月一樣，
-    從新竹出發，去了好多地方，最後又回到了溫暖的家。
-    
-    謝謝妳出現在我的生命裡。
-    希望這張「沒有期限的機票」，
-    能讓我陪妳去更多更多的地方。
-    
-    愛妳的男友 上
-    """
-    st.text_area("", letter, height=300, disabled=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    try:
+        img = Image.open(final_photo_path)
+        # 用一個 glass-card 把照片包起來，讓它有好看的白底毛玻璃邊框
+        st.markdown('<div class="glass-card" style="padding: 10px;">', unsafe_allow_html=True)
+        st.image(img, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    except:
+        st.warning(f"找不到最後的照片，請確認 {final_photo_path} 檔案是否存在。")
+
     st.write("")
 
     # 重新開始按鈕
@@ -579,7 +616,6 @@ def show_final_surprise():
             st.session_state.stage = 0
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
 # -----------------------------------------------------------------------------
 # 6. 主程式流程控制
 # -----------------------------------------------------------------------------
