@@ -242,7 +242,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (極致 20px 按鈕優化版)
+# 2. CSS 樣式設計 (圖片雙重置中鎖定版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -293,15 +293,25 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* =========================================
-       1. 圖片置中 (直接鎖定)
+       1. 圖片置中 (雙重鎖定修復)
        ========================================= */
+    /* 容器設定 */
     div[data-testid="stImage"] {
-        display: flex; justify-content: center; align-items: center; width: 100%; margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
     }
+    /* 圖片本體設定 - 強制區塊顯示並自動邊距 */
     div[data-testid="stImage"] img {
-        max-width: 100% !important; max-height: 600px !important;
-        width: auto !important; height: auto !important;
-        object-fit: contain !important; border-radius: 15px;
+        display: block !important; /* 關鍵：設為區塊元素 */
+        margin: 0 auto !important; /* 關鍵：左右自動邊距達成置中 */
+        max-width: 100% !important;
+        max-height: 600px !important;
+        width: auto !important; /* 讓圖片維持原比例 */
+        height: auto !important;
+        object-fit: contain !important;
+        border-radius: 15px;
     }
 
     /* =========================================
@@ -501,6 +511,7 @@ def show_journey_step(index):
     st.markdown(f"""<div class="glass-card"><h2 style="color:#2d3436; margin:0;">📍 {current_data['name']}</h2></div>""", unsafe_allow_html=True)
     st.write("")
     
+    # === 相簿邏輯 ===
     album = current_data.get("album", [])
     idx_key = f"photo_idx_{index}"
     if idx_key not in st.session_state:
@@ -509,6 +520,7 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
+    # 1. 顯示照片
     try:
         img = Image.open(current_item['image'])
         st.image(img, use_container_width=True)
