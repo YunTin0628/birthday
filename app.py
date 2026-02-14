@@ -242,7 +242,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (終極固定像素！拒絕所有比例縮放！)
+# 2. CSS 樣式設計 (極致 20px 按鈕優化版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -313,8 +313,8 @@ st.markdown("""
         width: 100% !important;
     }
     div.stButton > button {
-        width: 280px !important; /* 絕對固定大小，不再依賴欄位 */
-        max-width: 90vw !important; /* 手機上最多 90% 螢幕寬，防凸出 */
+        width: 280px !important; 
+        max-width: 90vw !important; 
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 12px 0 !important;
@@ -326,8 +326,8 @@ st.markdown("""
     div.stButton > button:hover { transform: scale(1.05); }
 
     /* =========================================
-       3. 【終極武器】相簿導航專用：絕對固定像素！
-       30px - 100px - 30px
+       3. 【終極武器】相簿導航專用：縮減至極限 20px！
+       20px - 100px - 20px
        ========================================= */
     /* 找到 nav-hook 下面的水平容器，強制它變成我們要的形狀 */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] {
@@ -341,30 +341,36 @@ st.markdown("""
         margin-top: 10px !important;
     }
     
-    /* 左、右按鈕容器：強制固定為 30px 寬！ */
+    /* 左、右按鈕容器：強制縮到 20px！並鎖死上下限 */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
-        flex: 0 0 30px !important; /* 絕對固定 30px，打死不變 */
-        width: 30px !important;
-        min-width: 30px !important;
+        flex: 0 0 20px !important; 
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important; /* 防禦 Streamlit 撐大 */
         padding: 0 !important;
     }
     
     /* 中間頁碼容器：強制固定為 100px 寬！ */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
-        flex: 0 0 100px !important; /* 絕對固定 100px */
+        flex: 0 0 100px !important; 
         width: 100px !important;
         min-width: 100px !important;
+        max-width: 100px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* 導航區內的按鈕：填滿固定的 30px，並把內部 padding 歸零防止被擠爛 */
+    /* 導航區內的按鈕實體：完美貼合 20px 容器 */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] div.stButton > button {
-        width: 100% !important;
-        min-width: 100% !important;
-        padding: 5px 0 !important; /* 上下 padding，左右為 0 */
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 5px 0 !important; /* 左右 padding 清零，只留上下 padding，確保符號放得下 */
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* 隱藏 Streamlit 原生元素 */
@@ -481,7 +487,6 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # 不使用 columns，直接印出按鈕，CSS 會將其強制固定為 280px 並置中
     if st.button("🛫 起飛", type="primary", use_container_width=True):
         play_flight_animation()
         st.session_state.stage = 1
@@ -496,7 +501,6 @@ def show_journey_step(index):
     st.markdown(f"""<div class="glass-card"><h2 style="color:#2d3436; margin:0;">📍 {current_data['name']}</h2></div>""", unsafe_allow_html=True)
     st.write("")
     
-    # === 相簿邏輯 ===
     album = current_data.get("album", [])
     idx_key = f"photo_idx_{index}"
     if idx_key not in st.session_state:
@@ -505,7 +509,6 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 (不使用 columns，直接印出照片，CSS 會將其置中並限制大小)
     try:
         img = Image.open(current_item['image'])
         st.image(img, use_container_width=True)
@@ -515,7 +518,6 @@ def show_journey_step(index):
     # 2. 導航按鈕
     if len(album) > 1:
         # === 核心精準定位標籤 ===
-        # 這裡塞入一個隱形的 hook，告訴 CSS：「接下來這組 columns，請強制固定為 30px - 100px - 30px！」
         st.markdown('<div class="fixed-nav-hook"></div>', unsafe_allow_html=True)
         
         c_prev, c_info, c_next = st.columns(3)
@@ -544,7 +546,7 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
-    # 4. 下一步按鈕 (不使用 columns)
+    # 4. 下一步按鈕
     if index < len(destinations):
         if st.button("✈️ 下一站", use_container_width=True):
             play_flight_animation()
@@ -570,7 +572,7 @@ def show_final_surprise():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # 壓軸照片區塊 (不使用 columns)
+    # 壓軸照片區塊
     final_photo_path = "images/final.jpg" 
     try:
         img = Image.open(final_photo_path)
@@ -582,7 +584,7 @@ def show_final_surprise():
 
     st.write("")
 
-    # 重新開始按鈕 (不使用 columns)
+    # 重新開始按鈕
     if st.button("🔄 再飛一次", use_container_width=True):
         st.session_state.stage = 0
         st.rerun()
