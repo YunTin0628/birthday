@@ -528,64 +528,82 @@ def show_journey_step(index):
     # 1. 顯示照片
     st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
-    # 2. 導航按鈕 (全新：防擠壓、防消失版本)
+# 2. 導航按鈕 (純 HTML 鎖死版，保證不跑版)
     if len(album) > 1:
-        # 使用自定義容器，鎖定寬度與置中
-        st.markdown("""
-            <style>
-                /* 建立一個專屬導航列容器 */
-                .nav-wrapper {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    width: 100% !important;
-                    margin: 10px 0 !important;
-                }
-                /* 強制這三個欄位橫向並排，不準縮放 */
-                .nav-wrapper > div {
-                    display: flex !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                }
-            </style>
+        # 計算上下張索引
+        prev_idx = (current_photo_index - 1) % len(album)
+        next_idx = (current_photo_index + 1) % len(album)
+        
+        # 這裡利用 Streamlit 的按鈕模擬出三個緊密排列的區塊
+        # 我們不再用 columns，改用更穩定的 layout 方式
+        
+        st.markdown(f"""
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
+                margin: 15px 0;
+                width: 100%;
+            ">
+                <div id="nav-container" style="display: flex; align-items: center; gap: 10px;">
+                </div>
+            </div>
         """, unsafe_allow_html=True)
 
-        # 使用固定比例，但給予足夠的空間
-        # 把欄位間距調到最小，確保手機裝得下
-        c1, c2, c3 = st.columns([1, 1, 1])
-
-        with c1:
-            # 加上 style 讓按鈕靠右一點，縮短與中間的距離
-            st.markdown('<div style="display: flex; justify-content: flex-end; width: 100%;">', unsafe_allow_html=True)
-            if st.button("❮", key=f"prev_{index}_{current_photo_index}"):
-                st.session_state[idx_key] = (current_photo_index - 1) % len(album)
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+        # 為了確保邏輯正常，我們使用小比例的 columns 並強制關閉自動堆疊
+        # 這是最後一招：將 columns 比例設得非常極端且置中
+        _, c_nav, _ = st.columns([0.1, 0.8, 0.1]) 
         
-        with c2:
-            # 中間數字，高度對齊按鈕
-            st.markdown(f"""
-                <div style='
-                    display: flex; 
-                    justify-content: center; 
-                    align-items: center; 
-                    height: 45px; 
-                    min-width: 60px;
-                    font-weight: bold; 
-                    color: #555;
-                    font-size: 16px;'>
-                    {current_photo_index + 1} / {len(album)}
-                </div>
-            """, unsafe_allow_html=True)
+        with c_nav:
+            # 建立一個內部容器
+            sub_c1, sub_c2, sub_c3 = st.columns([1, 1.2, 1])
             
-        with c3:
-            # 加上 style 讓按鈕靠左一點
-            st.markdown('<div style="display: flex; justify-content: flex-start; width: 100%;">', unsafe_allow_html=True)
-            if st.button("❯", key=f"next_{index}_{current_photo_index}"):
-                st.session_state[idx_key] = (current_photo_index + 1) % len(album)
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            with sub_c1:
+                # 這裡加一個空的 markdown 佔位符來強制寬度
+                if st.button("❮", key=f"btn_prev_{index}_{current_photo_index}"):
+                    st.session_state[idx_key] = prev_idx
+                    st.rerun()
+            
+            with sub_c2:
+                st.markdown(f"""
+                    <div style="
+                        height: 40px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-family: sans-serif;
+                        font-weight: bold;
+                        color: #555;
+                        white-space: nowrap;
+                    ">
+                        {current_photo_index + 1} / {len(album)}
+                    </div>
+                """, unsafe_allow_html=True)
+                
+            with sub_c3:
+                if st.button("❯", key=f"btn_next_{index}_{current_photo_index}"):
+                    st.session_state[idx_key] = next_idx
+                    st.rerun()
+
+    # 修復手機版 columns 消失的關鍵 CSS
+    st.markdown("""
+        <style>
+            /* 強制讓所有 columns 在手機上也不准換行 */
+            [data-testid="stHorizontalBlock"] {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            /* 強制讓每一欄根據內容縮放，不要平均分配 */
+            [data-testid="column"] {
+                width: auto !important;
+                flex: none !important;
+                padding: 0 5px !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
     # 3. 文字內容
     st.markdown(f"""
