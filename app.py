@@ -243,7 +243,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (最高防彈級・精準鎖死版)
+# 2. CSS 樣式設計 (最高防彈級・無破綻置中版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -312,7 +312,7 @@ st.markdown("""
     }
 
     /* ========================================================
-       2. 全域大按鈕 (起飛、下一站)
+       2. 全域大按鈕 (起飛、下一站) 絕對置中 + 固定寬度
        ======================================================== */
     div[data-testid="stButton"] {
         display: flex !important;
@@ -322,77 +322,71 @@ st.markdown("""
     }
     div[data-testid="stButton"] > button {
         width: 250px !important;      
-        max-width: 80vw !important;   
+        max-width: 80vw !important;   /* 防手機螢幕太小 */
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 10px 0 !important;
         font-size: 16px !important;
         margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* ========================================================
-       3. 導航列：【對抗 Streamlit 手機版自動斷行大作戰】
+       3. 導航列：【完美同一排，頁碼縮小至 20px】
        ======================================================== */
-    /* 所有尺寸強制橫排置中 */
+    /* 讓裝有按鈕的橫向區塊，寬度剛好包住內容 (fit-content)，並且整體置中 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important; /* 絕對不換行 */
         justify-content: center !important;
         align-items: center !important;
-        width: 100% !important;
-        max-width: 250px !important;
-        margin: 10px auto !important;
-        gap: 12px !important;
+        width: fit-content !important; /* 不允許撐滿 100% 螢幕 */
+        max-width: 160px !important;   /* 60 + 10 + 20 + 10 + 60 = 160，限制總寬度 */
+        margin: 15px auto !important;  /* 整個區塊置中 */
+        gap: 10px !important;          /* 三個元件之間的間距 */
         padding: 0 !important;
     }
 
-    /* Streamlit 在小於 576px 會加上 flex-direction: column，我們用 @media 強制壓回去！ */
-    @media (max-width: 768px) {
-        div[data-testid="stHorizontalBlock"] {
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-        }
-        div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-            width: auto !important;
-            flex: 0 0 auto !important;
-            min-width: unset !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
+    /* 覆蓋 Streamlit 自動分配寬度的機制 */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        width: auto !important;
+        flex: 0 0 auto !important; /* 不准伸展、不准縮水 */
+        min-width: 0 !important;
+        padding: 0 !important;
     }
 
-    /* 左按鈕與右按鈕的專屬空間 (精準 60px) */
+    /* 左、右按鈕容器鎖定 60px */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
         width: 60px !important;
-        flex: 0 0 60px !important;
     }
 
-    /* 中間頁碼的專屬空間 (80px) */
+    /* 中間頁碼容器鎖定 20px，強制置中 */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
         width: 20px !important;
-        flex: 0 0 20px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* 導航小按鈕的外觀 (套用你的精美 HTML/CSS 圓角設計) */
+    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 圓角按鈕 */
     div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
         width: 60px !important;
         min-width: 60px !important;
         max-width: 60px !important;
-        height: 40px !important;
+        height: 40px !important; /* 稍微扁一點的圓角矩形 */
         padding: 0 !important;
         margin: 0 !important;
-        border-radius: 12px !important;
-        background-color: white !important;
-        border: 1px solid #e0e0e0 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        border-radius: 15px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        background-color: white !important;
+        border: 1px solid #e0e0e0 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         transition: background-color 0.2s !important;
         color: #333 !important;
     }
@@ -402,25 +396,6 @@ st.markdown("""
         color: #333 !important;
         margin: 0 !important;
         line-height: 1 !important;
-    }
-
-    /* 按鈕點擊效果 */
-    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button:active {
-        background-color: #f0f0f0 !important;
-    }
-
-    /* 頁碼：完美呈現你的 .nav-counter 邏輯 */
-    .nav-counter {
-        font-weight: bold !important;
-        color: #555 !important;
-        font-size: 15px !important;
-        min-width: 45px !important;
-        text-align: center !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
     }
 
     /* 隱藏原生元素 */
@@ -583,8 +558,8 @@ def show_journey_step(index):
                 st.rerun()
         
         with c_info:
-            # 使用你的 .nav-counter 樣式
-            st.markdown(f"<div class='nav-counter'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            # 移除了會干擾排版的 width，讓 CSS 控制
+            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; white-space:nowrap;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
             if st.button("❯", key=f"next_{index}", use_container_width=True):
