@@ -512,7 +512,7 @@ def show_journey_step(index):
 
     # 2. 導航按鈕 (全場唯一保留的欄位，給予嚴格的 CSS 寬度比例)
     if len(album) > 1:
-        c_prev, c_info, c_next = st.columns([1, 2, 1], gap="small", vertical_alignment="center")
+        c_prev, c_info, c_next = st.columns([0.5, 1, 0.5], gap="small", vertical_alignment="center")
         
         with c_prev:
             if st.button("❮", key=f"prev_{index}", use_container_width=True):
