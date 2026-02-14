@@ -242,7 +242,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (最高相容性・絕對置中與 60px 鎖死版)
+# 2. CSS 樣式設計 (最高相容性・暴力破解防凸出版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -290,36 +290,40 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* ========================================================
-       1. 圖片保證置中 (放棄任何欄位，純粹用 display: block 暴力置中)
+       1. 圖片暴力置中 (連隱藏容器一起抓起來置中)
        ======================================================== */
-    div[data-testid="stImage"] {
+    [data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        margin: 0 auto !important;
         width: 100% !important;
     }
-    div[data-testid="stImage"] img {
+    [data-testid="stImage"] > div {
+        display: flex !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
+    }
+    [data-testid="stImage"] img {
         display: block !important;
-        margin: 0 auto !important; /* 絕對置中的關鍵 */
+        margin: 0 auto !important;
         max-width: 100% !important;
-        max-height: 550px !important;
+        max-height: 500px !important;
         width: auto !important;
-        height: auto !important;
-        object-fit: contain !important;
         border-radius: 15px !important;
     }
 
     /* ========================================================
-       2. 全域所有大按鈕 (起飛、下一站)
+       2. 全域大按鈕 (起飛、下一站) 絕對防凸出
        ======================================================== */
-    .stButton {
+    [data-testid="stButton"] {
         display: flex !important;
         justify-content: center !important;
         width: 100% !important;
     }
-    .stButton > button {
-        width: 250px !important;      /* 大按鈕固定寬度 */
-        max-width: 80vw !important;   /* 防溢出 */
+    [data-testid="stButton"] > button {
+        width: 250px !important;      
+        max-width: 80vw !important;   /* 絕對防凸出：最多只佔螢幕 80% */
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 10px 0 !important;
@@ -328,48 +332,41 @@ st.markdown("""
     }
 
     /* ========================================================
-       3. 【終極對策】相簿導航按鈕 (全場唯一的 st.columns)
-       放棄 :has() 語法，直接鎖定 stHorizontalBlock！
+       3. 相簿導航按鈕 (60px - 60px - 60px) 同一排防溢出
        ======================================================== */
-    /* 強迫欄位必須是橫的，絕對不准換行！ */
+    /* 限制外層容器總寬度，保證不會撐破螢幕 */
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; /* 絕對不換行 */
+        flex-wrap: nowrap !important; /* 絕對不准換行堆疊 */
         justify-content: center !important;
         align-items: center !important;
-        width: 100% !important;
+        width: 200px !important;      /* 60 + 60 + 60 + gap 鎖死總寬度 */
+        max-width: 100vw !important;
+        margin: 10px auto !important; /* 整個區塊置中 */
         gap: 10px !important;
-        margin: 10px auto !important;
-    }
-
-    /* 解除 Streamlit 手機版預設的 100% 寬度詛咒 */
-    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        width: auto !important;
-        min-width: 0 !important;
-        flex: unset !important;
         padding: 0 !important;
     }
 
-    /* 左按鈕與右按鈕的容器：強制精準鎖定 60px */
-    [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(1),
-    [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(3) {
-        width: 60px !important;
-    }
-
-    /* 中間文字的容器：強制鎖定 100px */
-    [data-testid="stHorizontalBlock"] > [data-testid="column"]:nth-child(2) {
-        width: 100px !important;
-        text-align: center !important;
-    }
-
-    /* 覆蓋大按鈕設定，讓這裡的導航小按鈕完美變成 60px！ */
-    [data-testid="stHorizontalBlock"] .stButton > button {
+    /* 三個欄位統統強制為 60px */
+    [data-testid="column"] {
+        flex: 0 0 60px !important;
         width: 60px !important;
         min-width: 60px !important;
         max-width: 60px !important;
-        border-radius: 15px !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    /* 導航小按鈕覆寫 (剛好填滿 60px) */
+    [data-testid="column"] [data-testid="stButton"] > button {
+        width: 60px !important;
+        min-width: 60px !important;
+        max-width: 60px !important;
         padding: 5px 0 !important;
+        border-radius: 15px !important;
     }
 
     /* 隱藏原生元素 */
@@ -502,14 +499,14 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 [沒有欄位] 直接印出，CSS 保證置中
+    # 1. 顯示照片 [沒有欄位] 直接印出，CSS 保證雙重置中
     try:
         img = Image.open(current_item['image'])
         st.image(img)
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 [全場唯一使用欄位的地方！]
+    # 2. 導航按鈕 [全場唯一使用欄位的地方！ CSS 鎖定 60px]
     if len(album) > 1:
         c_prev, c_info, c_next = st.columns(3)
         
@@ -519,7 +516,8 @@ def show_journey_step(index):
                 st.rerun()
         
         with c_info:
-            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            # 移除了 margin:0 以配合 flex 自動置中
+            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; width:60px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
             if st.button("❯", key=f"next_{index}"):
@@ -582,7 +580,7 @@ def show_final_surprise():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 6. 主程式流程控制 (核心置頂修正區)
+# 6. 主程式流程控制
 # -----------------------------------------------------------------------------
 if st.session_state.stage != st.session_state.prev_stage:
     scroll_to_here(0, key=f"force_scroll_top_stage_{st.session_state.stage}")
