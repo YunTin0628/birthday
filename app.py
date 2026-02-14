@@ -242,7 +242,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (最高相容性・暴力破解防凸出版)
+# 2. CSS 樣式設計 (最高防彈級・無破綻置中版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -290,81 +290,93 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* ========================================================
-       1. 圖片暴力置中 (連隱藏容器一起抓起來置中)
+       1. 圖片絕對置中 (雙層 Flex 容器鎖定)
        ======================================================== */
-    [data-testid="stImage"] {
+    div[data-testid="stImage"] {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        margin: 0 auto !important;
         width: 100% !important;
+        margin: 0 auto !important;
     }
-    [data-testid="stImage"] > div {
+    div[data-testid="stImage"] > div {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
         margin: 0 auto !important;
     }
-    [data-testid="stImage"] img {
+    div[data-testid="stImage"] img {
         display: block !important;
         margin: 0 auto !important;
         max-width: 100% !important;
-        max-height: 500px !important;
-        width: auto !important;
+        max-height: 60vh !important;
         border-radius: 15px !important;
     }
 
     /* ========================================================
-       2. 全域大按鈕 (起飛、下一站) 絕對防凸出
+       2. 全域大按鈕 (起飛、下一站) 絕對置中 + 固定寬度
        ======================================================== */
-    [data-testid="stButton"] {
+    div[data-testid="stButton"] {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
     }
-    [data-testid="stButton"] > button {
+    div[data-testid="stButton"] > button {
         width: 250px !important;      
-        max-width: 80vw !important;   /* 絕對防凸出：最多只佔螢幕 80% */
+        max-width: 80vw !important;   /* 防手機螢幕太小 */
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 10px 0 !important;
         font-size: 16px !important;
         margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* ========================================================
-       3. 相簿導航按鈕 (60px - 60px - 60px) 同一排防溢出
+       3. 相簿導航列 (同一排 + 60px)
+       全場唯一使用 st.columns 的地方
        ======================================================== */
-    /* 限制外層容器總寬度，保證不會撐破螢幕 */
-    [data-testid="stHorizontalBlock"] {
+    /* 強制將這個區塊保持同一排、不換行並整體居中 */
+    div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; /* 絕對不准換行堆疊 */
+        flex-wrap: nowrap !important; 
         justify-content: center !important;
         align-items: center !important;
-        width: 200px !important;      /* 60 + 60 + 60 + gap 鎖死總寬度 */
-        max-width: 100vw !important;
-        margin: 10px auto !important; /* 整個區塊置中 */
-        gap: 10px !important;
-        padding: 0 !important;
+        width: 100% !important;
+        max-width: 300px !important; /* 將整個導航區塊限制在中間 */
+        margin: 10px auto !important;
+        gap: 15px !important;
     }
 
-    /* 三個欄位統統強制為 60px */
-    [data-testid="column"] {
-        flex: 0 0 60px !important;
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        width: auto !important;
+        flex: none !important;
+        min-width: 0 !important;
+    }
+
+    /* 左、右按鈕容器鎖定 60px */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
         width: 60px !important;
-        min-width: 60px !important;
-        max-width: 60px !important;
-        padding: 0 !important;
+    }
+
+    /* 中間頁碼容器給足 80px 空間，並強制置中 */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
+        width: 80px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* 導航小按鈕覆寫 (剛好填滿 60px) */
-    [data-testid="column"] [data-testid="stButton"] > button {
+    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 小圓角 */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
         width: 60px !important;
         min-width: 60px !important;
-        max-width: 60px !important;
         padding: 5px 0 !important;
         border-radius: 15px !important;
     }
@@ -476,7 +488,6 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # [沒有欄位] 直接印出按鈕
     if st.button("🛫 起飛", type="primary"):
         play_flight_animation()
         st.session_state.stage = 1
@@ -499,14 +510,13 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 [沒有欄位] 直接印出，CSS 保證雙重置中
     try:
         img = Image.open(current_item['image'])
         st.image(img)
     except:
         st.warning(f"缺少照片: {current_item['image']}")
 
-    # 2. 導航按鈕 [全場唯一使用欄位的地方！ CSS 鎖定 60px]
+    # 導航按鈕 (同一排！)
     if len(album) > 1:
         c_prev, c_info, c_next = st.columns(3)
         
@@ -516,15 +526,14 @@ def show_journey_step(index):
                 st.rerun()
         
         with c_info:
-            # 移除了 margin:0 以配合 flex 自動置中
-            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; width:30px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            # 移除了會干擾排版的 width 設定，讓 CSS 統一接管置中
+            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
             if st.button("❯", key=f"next_{index}"):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
-    # 3. 文字內容
     st.write("")
     st.markdown(f"""
         <div class="glass-card" style="min-height: 100px; padding: 15px;">
@@ -535,7 +544,6 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
-    # 4. 下一步按鈕 [沒有欄位]
     if index < len(destinations):
         if st.button("✈️ 下一站"):
             play_flight_animation()
@@ -560,7 +568,6 @@ def show_final_surprise():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # [沒有欄位] 照片直接印出
     final_photo_path = "images/final.jpg" 
     try:
         img = Image.open(final_photo_path)
@@ -572,7 +579,6 @@ def show_final_surprise():
 
     st.write("")
 
-    # [沒有欄位] 直接印出按鈕
     if st.button("🔄 再飛一次"):
         st.session_state.stage = 0
         st.rerun()
