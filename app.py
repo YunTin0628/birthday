@@ -243,7 +243,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (最高防彈級・精準鎖死版)
+# 2. CSS 樣式設計 (完美結合你的手寫 Flexbox 設計)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -291,7 +291,7 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* ========================================================
-       1. 圖片絕對置中 (HTML Base64 原生容器，絕不跑版)
+       1. 圖片絕對置中 (HTML Base64 原生容器)
        ======================================================== */
     .custom-img-container {
         display: flex !important;
@@ -312,42 +312,45 @@ st.markdown("""
     }
 
     /* ========================================================
-       2. 全域大按鈕 (起飛、下一站) 絕對置中 + 固定寬度
+       2. 預設全域大按鈕 (起飛、下一站)
        ======================================================== */
     div[data-testid="stButton"] {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
-        text-align: center !important;
     }
     div[data-testid="stButton"] > button {
         width: 250px !important;      
-        max-width: 80vw !important;   /* 防手機螢幕太小 */
+        max-width: 80vw !important;   
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 10px 0 !important;
         font-size: 16px !important;
-        margin: 0 auto !important;    /* 核心置中 */
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* ========================================================
-       3. 相簿導航列 (完美同一排，緊湊 60px)
-       全場唯一使用 st.columns 的地方！
+       3. 結合你的設計：完美的 Flexbox 導航列
+       使用最高相容性寫法 (不用 :has 語法)
+       這段會將你的 .nav-bar-flex 屬性套用到導航容器上！
        ======================================================== */
-    /* 強制將導航總容器鎖死在 250px 內，並整體居中 */
+    /* 容器：完美呈現你的 .nav-bar-flex 邏輯 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; /* 絕對不換行 */
         justify-content: center !important;
         align-items: center !important;
+        gap: 12px !important;            /* 你設定的間距 */
         width: 100% !important;
-        max-width: 250px !important;  /* 核心：不讓容器撐滿 100% 螢幕 */
-        margin: 15px auto !important; /* 核心：整個導航列居中 */
-        gap: 10px !important;
+        margin: 10px auto !important;    /* 置中 */
+        padding: 0 !important;
     }
 
-    /* 覆蓋 Streamlit 自動分配寬度的機制 */
+    /* 清除 Streamlit 自動把按鈕變滿版的干擾 */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
         width: auto !important;
         flex: none !important;
@@ -355,27 +358,52 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* 左、右按鈕容器鎖定 60px */
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
-        width: 60px !important;
-    }
-
-    /* 中間頁碼容器鎖定 80px，強制置中 */
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
-        width: 80px !important;
+    /* 左右按鈕覆蓋：完美呈現你的 .nav-arrow-btn 邏輯 */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
+        width: 48px !important;
+        height: 40px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        background-color: white !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 12px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transition: background-color 0.2s !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    /* 按鈕內的文字顏色與大小 */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button p {
+        font-size: 18px !important;
+        color: #333 !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+        user-select: none !important;
     }
 
-    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 圓角按鈕 */
-    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
-        width: 60px !important;
-        min-width: 60px !important;
-        max-width: 60px !important;
-        padding: 5px 0 !important;
-        border-radius: 15px !important;
+    /* 點擊效果 */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button:active {
+        background-color: #f0f0f0 !important;
+    }
+
+    /* 頁碼：完美呈現你的 .nav-counter 邏輯 */
+    .nav-counter {
+        font-weight: bold !important;
+        color: #555 !important;
+        font-size: 15px !important;
+        min-width: 45px !important;
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* 隱藏原生元素 */
@@ -525,87 +553,29 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片
+    # 1. 顯示照片 (Base64 絕對置中)
     st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
-# 2. 導航按鈕 (精準手術版：確保不跑版、不見醜按鈕)
+    # 2. 導航按鈕 (全場唯一使用欄位的地方)
     if len(album) > 1:
-        # --- A. 先處理邏輯 (這兩個按鈕會被我們徹底藏到最下面) ---
-        with st.container():
-            # 建立一個隱藏區塊
-            st.markdown('<div class="hidden-logic-zone">', unsafe_allow_html=True)
-            col_h1, col_h2 = st.columns(2)
-            with col_h1:
-                # 這裡的 key 必須包含 index 和 photo_index
-                btn_prev = st.button("PREV", key=f"p_logic_{index}_{current_photo_index}")
-            with col_h2:
-                btn_next = st.button("NEXT", key=f"n_logic_{index}_{current_photo_index}")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        if btn_prev:
-            st.session_state[idx_key] = (current_photo_index - 1) % len(album)
-            st.rerun()
-        if btn_next:
-            st.session_state[idx_key] = (current_photo_index + 1) % len(album)
-            st.rerun()
-
-        # --- B. 顯示漂亮的自定義導航列 ---
-        st.markdown(f"""
-            <style>
-                /* 1. 徹底消滅隱藏按鈕的空間 */
-                .hidden-logic-zone {{
-                    display: none !important;
-                    height: 0 !important;
-                    overflow: hidden !important;
-                }}
-                
-                /* 2. 導航容器：強制併排且置中 */
-                .nav-flex-container {{
-                    display: flex !important;
-                    flex-direction: row !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    gap: 15px !important;
-                    margin: 10px auto !important;
-                    width: 100% !important;
-                }}
-
-                /* 3. 自定義按鈕樣式 */
-                .my-btn {{
-                    width: 50px !important;
-                    height: 40px !important;
-                    background-color: white !important;
-                    border: 1px solid #ddd !important;
-                    border-radius: 12px !important;
-                    display: flex !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    cursor: pointer !important;
-                    font-size: 18px !important;
-                    color: #333 !important;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-                    user-select: none !important;
-                    -webkit-tap-highlight-color: transparent !important; /* 移除藍色框 */
-                }}
-
-                /* 4. 頁碼文字樣式 */
-                .nav-text {{
-                    font-weight: bold !important;
-                    color: #555 !important;
-                    font-size: 16px !important;
-                    min-width: 50px !important;
-                    text-align: center !important;
-                }}
-            </style>
-
-            <div class="nav-flex-container">
-                <div class="my-btn" onclick="document.querySelector('button[key=\\'p_logic_{index}_{current_photo_index}\\']').click()">❮</div>
-                <div class="nav-text">{current_photo_index + 1} / {len(album)}</div>
-                <div class="my-btn" onclick="document.querySelector('button[key=\\'n_logic_{index}_{current_photo_index}\\']').click()">❯</div>
-            </div>
-        """, unsafe_allow_html=True)
+        c_prev, c_info, c_next = st.columns(3)
+        
+        with c_prev:
+            if st.button("❮", key=f"prev_{index}", use_container_width=True):
+                st.session_state[idx_key] = (current_photo_index - 1) % len(album)
+                st.rerun()
+        
+        with c_info:
+            # 使用你設計的 .nav-counter 樣式
+            st.markdown(f"<div class='nav-counter'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            
+        with c_next:
+            if st.button("❯", key=f"next_{index}", use_container_width=True):
+                st.session_state[idx_key] = (current_photo_index + 1) % len(album)
+                st.rerun()
 
     # 3. 文字內容
+    st.write("")
     st.markdown(f"""
         <div class="glass-card" style="min-height: 100px; padding: 15px;">
             <p style="font-size:18px; color:#555; margin:0; line-height:1.6;">
@@ -617,12 +587,12 @@ def show_journey_step(index):
 
     # 4. 下一步按鈕
     if index < len(destinations):
-        if st.button("✈️ 下一站", key=f"next_step_{index}", use_container_width=True):
+        if st.button("✈️ 下一站", use_container_width=True):
             play_flight_animation()
             st.session_state.stage += 1
             st.rerun()
     else:
-        if st.button("旅程結束", type="primary", key="journey_end", use_container_width=True):
+        if st.button("旅程結束", type="primary", use_container_width=True):
             play_flight_animation()
             st.session_state.stage = 999
             st.rerun()
