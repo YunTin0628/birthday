@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_scroll_to_top import scroll_to_here
-from PIL import Image
+import base64
+import os
 import time
 
 # -----------------------------------------------------------------------------
@@ -290,28 +291,23 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* ========================================================
-       1. 圖片絕對置中 (雙層 Flex 容器鎖定)
+       1. 圖片絕對置中 (改用自訂 HTML 容器，保證 100% 聽話)
        ======================================================== */
-    div[data-testid="stImage"] {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: 100% !important;
-        margin: 0 auto !important;
+    .custom-img-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0 auto;
+        padding: 10px 0;
     }
-    div[data-testid="stImage"] > div {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: 100% !important;
-        margin: 0 auto !important;
-    }
-    div[data-testid="stImage"] img {
-        display: block !important;
-        margin: 0 auto !important;
-        max-width: 100% !important;
-        max-height: 60vh !important;
-        border-radius: 15px !important;
+    .custom-img-container img {
+        display: block;
+        max-width: 100%;
+        max-height: 55vh; /* 避免直式照片太長佔滿螢幕 */
+        border-radius: 15px;
+        object-fit: contain;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     /* ========================================================
@@ -338,7 +334,7 @@ st.markdown("""
 
     /* ========================================================
        3. 相簿導航列 (同一排 + 60px)
-       全場唯一使用 st.columns 的地方
+       全場唯一使用 st.columns 的地方！
        ======================================================== */
     /* 強制將這個區塊保持同一排、不換行並整體居中 */
     div[data-testid="stHorizontalBlock"] {
@@ -348,15 +344,16 @@ st.markdown("""
         justify-content: center !important;
         align-items: center !important;
         width: 100% !important;
-        max-width: 300px !important; /* 將整個導航區塊限制在中間 */
-        margin: 10px auto !important;
-        gap: 15px !important;
+        max-width: 250px !important; /* 將整個導航區塊限制在中間 */
+        margin: 15px auto !important;
+        gap: 10px !important;
     }
 
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
         width: auto !important;
         flex: none !important;
         min-width: 0 !important;
+        padding: 0 !important;
     }
 
     /* 左、右按鈕容器鎖定 60px */
@@ -365,7 +362,7 @@ st.markdown("""
         width: 60px !important;
     }
 
-    /* 中間頁碼容器給足 80px 空間，並強制置中 */
+    /* 中間頁碼容器鎖定 80px 空間，並強制置中 */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
         width: 80px !important;
         display: flex !important;
@@ -373,10 +370,11 @@ st.markdown("""
         align-items: center !important;
     }
 
-    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 小圓角 */
+    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 圓角按鈕 */
     div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
         width: 60px !important;
         min-width: 60px !important;
+        max-width: 60px !important;
         padding: 5px 0 !important;
         border-radius: 15px !important;
     }
@@ -407,7 +405,25 @@ if 'prev_stage' not in st.session_state:
     st.session_state.prev_stage = -1
 
 # -----------------------------------------------------------------------------
-# 4. 核心魔法：CSS 手刻飛機進度條動畫
+# 4. 照片轉 Base64 顯示函式 (解決照片跑版的核心)
+# -----------------------------------------------------------------------------
+def get_image_html(image_path):
+    try:
+        if not os.path.exists(image_path):
+            return f"<div style='text-align:center; color:red; padding:20px;'>找不到照片: {image_path}</div>"
+        
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+            
+        ext = image_path.split('.')[-1].lower()
+        mime_type = f"image/{ext}" if ext in ['png', 'jpg', 'jpeg', 'gif'] else "image/jpeg"
+        
+        return f'<div class="custom-img-container"><img src="data:{mime_type};base64,{encoded_string}"></div>'
+    except Exception as e:
+        return f"<div style='text-align:center; color:red; padding:20px;'>照片載入錯誤</div>"
+
+# -----------------------------------------------------------------------------
+# 5. 核心魔法：CSS 手刻飛機進度條動畫
 # -----------------------------------------------------------------------------
 def play_flight_animation():
     placeholder = st.empty()
@@ -458,7 +474,7 @@ def play_flight_animation():
     placeholder.empty()
 
 # -----------------------------------------------------------------------------
-# 5. 頁面邏輯
+# 6. 頁面邏輯
 # -----------------------------------------------------------------------------
 
 def show_ticket():
@@ -488,7 +504,8 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    if st.button("🛫 起飛", type="primary"):
+    # 【關鍵修改】加上 use_container_width=True 讓 CSS 的 margin 魔法生效！
+    if st.button("🛫 起飛", type="primary", use_container_width=True):
         play_flight_animation()
         st.session_state.stage = 1
         st.rerun()
@@ -510,30 +527,27 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    try:
-        img = Image.open(current_item['image'])
-        st.image(img)
-    except:
-        st.warning(f"缺少照片: {current_item['image']}")
+    # 1. 顯示照片 (Base64 絕對置中)
+    st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
-    # 導航按鈕 (同一排！)
+    # 2. 導航按鈕 (全場唯一使用欄位的地方)
     if len(album) > 1:
         c_prev, c_info, c_next = st.columns(3)
         
         with c_prev:
-            if st.button("❮", key=f"prev_{index}"):
+            if st.button("❮", key=f"prev_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
         with c_info:
-            # 移除了會干擾排版的 width 設定，讓 CSS 統一接管置中
-            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:center; color:#555; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
-            if st.button("❯", key=f"next_{index}"):
+            if st.button("❯", key=f"next_{index}", use_container_width=True):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
+    # 3. 文字內容
     st.write("")
     st.markdown(f"""
         <div class="glass-card" style="min-height: 100px; padding: 15px;">
@@ -544,13 +558,14 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
+    # 4. 下一步按鈕 【關鍵修改】加上 use_container_width=True
     if index < len(destinations):
-        if st.button("✈️ 下一站"):
+        if st.button("✈️ 下一站", use_container_width=True):
             play_flight_animation()
             st.session_state.stage += 1
             st.rerun()
     else:
-        if st.button("旅程結束", type="primary"):
+        if st.button("旅程結束", type="primary", use_container_width=True):
             play_flight_animation()
             st.session_state.stage = 999
             st.rerun()
@@ -568,25 +583,21 @@ def show_final_surprise():
     """, unsafe_allow_html=True)
     st.write("")
 
+    # 壓軸照片 (Base64)
     final_photo_path = "images/final.jpg" 
-    try:
-        img = Image.open(final_photo_path)
-        st.markdown('<div class="glass-card" style="padding: 10px;">', unsafe_allow_html=True)
-        st.image(img)
-        st.markdown('</div>', unsafe_allow_html=True)
-    except:
-        st.warning(f"找不到最後的照片，請確認 {final_photo_path} 檔案是否存在。")
+    st.markdown(f'<div class="glass-card" style="padding: 10px;">{get_image_html(final_photo_path)}</div>', unsafe_allow_html=True)
 
     st.write("")
 
-    if st.button("🔄 再飛一次"):
+    # 重新開始按鈕 【關鍵修改】加上 use_container_width=True
+    if st.button("🔄 再飛一次", use_container_width=True):
         st.session_state.stage = 0
         st.rerun()
         
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 6. 主程式流程控制
+# 7. 主程式流程控制
 # -----------------------------------------------------------------------------
 if st.session_state.stage != st.session_state.prev_stage:
     scroll_to_here(0, key=f"force_scroll_top_stage_{st.session_state.stage}")
