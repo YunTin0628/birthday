@@ -372,7 +372,7 @@ st.markdown("""
     /* 中間頁碼的專屬空間 (80px) */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
         width: 20px !important;
-        flex: 0 0 80px !important;
+        flex: 0 0 20px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
