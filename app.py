@@ -326,7 +326,8 @@ st.markdown("""
     div.stButton > button:hover { transform: scale(1.05); }
 
     /* =========================================
-       3. 【終極武器】相簿導航專用：絕對固定像素，禁止比例縮放！
+       3. 【終極武器】相簿導航專用：絕對固定像素！
+       30px - 100px - 30px
        ========================================= */
     /* 找到 nav-hook 下面的水平容器，強制它變成我們要的形狀 */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] {
@@ -340,10 +341,10 @@ st.markdown("""
         margin-top: 10px !important;
     }
     
-    /* 左、右按鈕容器：強制固定為 60px 寬！ */
+    /* 左、右按鈕容器：強制固定為 30px 寬！ */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
-        flex: 0 0 30px !important; /* 絕對固定 60px，打死不變 */
+        flex: 0 0 30px !important; /* 絕對固定 30px，打死不變 */
         width: 30px !important;
         min-width: 30px !important;
         padding: 0 !important;
@@ -359,11 +360,11 @@ st.markdown("""
         align-items: center !important;
     }
 
-    /* 導航區內的按鈕：填滿固定的 60px */
+    /* 導航區內的按鈕：填滿固定的 30px，並把內部 padding 歸零防止被擠爛 */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] div.stButton > button {
         width: 100% !important;
         min-width: 100% !important;
-        padding: 5px 0 !important; /* 高度變薄一點，看起來更精緻 */
+        padding: 5px 0 !important; /* 上下 padding，左右為 0 */
     }
 
     /* 隱藏 Streamlit 原生元素 */
@@ -514,7 +515,7 @@ def show_journey_step(index):
     # 2. 導航按鈕
     if len(album) > 1:
         # === 核心精準定位標籤 ===
-        # 這裡塞入一個隱形的 hook，告訴 CSS：「接下來這組 columns，請強制固定為 60px - 100px - 60px！」
+        # 這裡塞入一個隱形的 hook，告訴 CSS：「接下來這組 columns，請強制固定為 30px - 100px - 30px！」
         st.markdown('<div class="fixed-nav-hook"></div>', unsafe_allow_html=True)
         
         c_prev, c_info, c_next = st.columns(3)
