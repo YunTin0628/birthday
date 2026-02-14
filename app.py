@@ -525,28 +525,55 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 (Base64 絕對置中)
+    # 1. 顯示照片
     st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
-    # 2. 導航按鈕 (全場唯一使用欄位的地方)
+    # 2. 修改後的相簿導航 (解決手機跑版關鍵)
     if len(album) > 1:
-        c_prev, c_info, c_next = st.columns(3)
+        # 這裡不再使用 st.columns，改用自定義容器
+        # 建立三個靠得很近的按鈕
+        nav_col1, nav_col2, nav_col3 = st.columns([1, 1, 1])
         
-        with c_prev:
-            if st.button("❮", key=f"prev_{index}", use_container_width=True):
+        # 這裡我們用一個不可見的容器包裹，並透過 CSS 強制它們併排
+        st.markdown("""
+            <style>
+                /* 強制讓這個區塊的列不換行且置中 */
+                [data-testid="stHorizontalBlock"]:has(button[key^="prev_"]),
+                [data-testid="stHorizontalBlock"]:has(button[key^="next_"]) {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    gap: 10px !important;
+                    width: 100% !important;
+                }
+                /* 縮小按鈕寬度，確保不會擠出去 */
+                [data-testid="stHorizontalBlock"]:has(button[key^="prev_"]) div[data-testid="column"] {
+                    flex: 0 1 auto !important;
+                    min-width: 60px !important;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        with nav_col1:
+            if st.button("❮", key=f"prev_{index}"):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
-        with c_info:
-            st.markdown(f"<div style='text-align:center; color:#555; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+        with nav_col2:
+            # 使用 markdown 顯示頁碼，確保它跟按鈕一樣高且置中
+            st.markdown(f"""
+                <div style='display: flex; justify-content: center; align-items: center; height: 38px; font-weight: bold; color: #555;'>
+                    {current_photo_index + 1} / {len(album)}
+                </div>
+            """, unsafe_allow_html=True)
             
-        with c_next:
-            if st.button("❯", key=f"next_{index}", use_container_width=True):
+        with nav_col3:
+            if st.button("❯", key=f"next_{index}"):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
     # 3. 文字內容
-    st.write("")
     st.markdown(f"""
         <div class="glass-card" style="min-height: 100px; padding: 15px;">
             <p style="font-size:18px; color:#555; margin:0; line-height:1.6;">
@@ -558,18 +585,18 @@ def show_journey_step(index):
 
     # 4. 下一步按鈕
     if index < len(destinations):
-        if st.button("✈️ 下一站", use_container_width=True):
+        if st.button("✈️ 下一站", key=f"next_step_{index}", use_container_width=True):
             play_flight_animation()
             st.session_state.stage += 1
             st.rerun()
     else:
-        if st.button("旅程結束", type="primary", use_container_width=True):
+        if st.button("旅程結束", type="primary", key="journey_end", use_container_width=True):
             play_flight_animation()
             st.session_state.stage = 999
             st.rerun()
             
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 def show_final_surprise():
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
