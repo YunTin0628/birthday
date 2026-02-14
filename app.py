@@ -121,7 +121,7 @@ destinations = [
                 "desc": "每次都在reels看到很多情侶拍照姿勢，終於有機會實踐了。為了拍出這張算是好看的照片喬了超級久，好好笑。"
             },
             {
-                "image": "images/image8.jpg",
+                "image": "images/8.jpg",
                 "desc": "幫你拍的絕佳氛圍照，還是被你說不好看，我決定要去認真學拍照。"
             },
             {
