@@ -528,50 +528,64 @@ def show_journey_step(index):
     # 1. 顯示照片
     st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
-    # 2. 修改後的相簿導航 (解決手機跑版關鍵)
+    # 2. 導航按鈕 (全新：防擠壓、防消失版本)
     if len(album) > 1:
-        # 這裡不再使用 st.columns，改用自定義容器
-        # 建立三個靠得很近的按鈕
-        nav_col1, nav_col2, nav_col3 = st.columns([1, 1, 1])
-        
-        # 這裡我們用一個不可見的容器包裹，並透過 CSS 強制它們併排
+        # 使用自定義容器，鎖定寬度與置中
         st.markdown("""
             <style>
-                /* 強制讓這個區塊的列不換行且置中 */
-                [data-testid="stHorizontalBlock"]:has(button[key^="prev_"]),
-                [data-testid="stHorizontalBlock"]:has(button[key^="next_"]) {
+                /* 建立一個專屬導航列容器 */
+                .nav-wrapper {
                     display: flex !important;
                     flex-direction: row !important;
                     justify-content: center !important;
                     align-items: center !important;
-                    gap: 10px !important;
                     width: 100% !important;
+                    margin: 10px 0 !important;
                 }
-                /* 縮小按鈕寬度，確保不會擠出去 */
-                [data-testid="stHorizontalBlock"]:has(button[key^="prev_"]) div[data-testid="column"] {
-                    flex: 0 1 auto !important;
-                    min-width: 60px !important;
+                /* 強制這三個欄位橫向並排，不準縮放 */
+                .nav-wrapper > div {
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
                 }
             </style>
         """, unsafe_allow_html=True)
 
-        with nav_col1:
-            if st.button("❮", key=f"prev_{index}"):
+        # 使用固定比例，但給予足夠的空間
+        # 把欄位間距調到最小，確保手機裝得下
+        c1, c2, c3 = st.columns([1, 1, 1])
+
+        with c1:
+            # 加上 style 讓按鈕靠右一點，縮短與中間的距離
+            st.markdown('<div style="display: flex; justify-content: flex-end; width: 100%;">', unsafe_allow_html=True)
+            if st.button("❮", key=f"prev_{index}_{current_photo_index}"):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        with nav_col2:
-            # 使用 markdown 顯示頁碼，確保它跟按鈕一樣高且置中
+        with c2:
+            # 中間數字，高度對齊按鈕
             st.markdown(f"""
-                <div style='display: flex; justify-content: center; align-items: center; height: 38px; font-weight: bold; color: #555;'>
+                <div style='
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    height: 45px; 
+                    min-width: 60px;
+                    font-weight: bold; 
+                    color: #555;
+                    font-size: 16px;'>
                     {current_photo_index + 1} / {len(album)}
                 </div>
             """, unsafe_allow_html=True)
             
-        with nav_col3:
-            if st.button("❯", key=f"next_{index}"):
+        with c3:
+            # 加上 style 讓按鈕靠左一點
+            st.markdown('<div style="display: flex; justify-content: flex-start; width: 100%;">', unsafe_allow_html=True)
+            if st.button("❯", key=f"next_{index}_{current_photo_index}"):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # 3. 文字內容
     st.markdown(f"""
@@ -596,7 +610,7 @@ def show_journey_step(index):
             st.rerun()
             
     st.markdown('</div>', unsafe_allow_html=True)
-    
+
 def show_final_surprise():
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.balloons()
