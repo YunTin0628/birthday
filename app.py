@@ -517,7 +517,7 @@ def show_journey_step(index):
         
         with c_info:
             # 移除了 margin:0 以配合 flex 自動置中
-            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; width:60px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:center; color:#aaa; font-weight:bold; font-size:16px; width:30px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
             if st.button("❯", key=f"next_{index}"):
