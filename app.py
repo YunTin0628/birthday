@@ -343,9 +343,9 @@ st.markdown("""
     /* 左、右按鈕容器：強制固定為 60px 寬！ */
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
     div[data-testid="stElementContainer"]:has(.fixed-nav-hook) + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
-        flex: 0 0 60px !important; /* 絕對固定 60px，打死不變 */
-        width: 60px !important;
-        min-width: 60px !important;
+        flex: 0 0 30px !important; /* 絕對固定 60px，打死不變 */
+        width: 30px !important;
+        min-width: 30px !important;
         padding: 0 !important;
     }
     
