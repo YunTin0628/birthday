@@ -243,7 +243,7 @@ destinations = [
 ]
 
 # -----------------------------------------------------------------------------
-# 2. CSS 樣式設計 (最高防彈級・無破綻置中版)
+# 2. CSS 樣式設計 (相簿按鈕終極不擴張版)
 # -----------------------------------------------------------------------------
 st.markdown("""
     <style>
@@ -291,7 +291,7 @@ st.markdown("""
     .pass-value { font-size: 16px; font-weight: bold; color: #333; }
     
     /* ========================================================
-       1. 圖片絕對置中 (改用自訂 HTML 容器，保證 100% 聽話)
+       1. 圖片絕對置中 (HTML Base64 容器)
        ======================================================== */
     .custom-img-container {
         display: flex;
@@ -304,7 +304,7 @@ st.markdown("""
     .custom-img-container img {
         display: block;
         max-width: 100%;
-        max-height: 55vh; /* 避免直式照片太長佔滿螢幕 */
+        max-height: 55vh; 
         border-radius: 15px;
         object-fit: contain;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -321,7 +321,7 @@ st.markdown("""
     }
     div[data-testid="stButton"] > button {
         width: 250px !important;      
-        max-width: 80vw !important;   /* 防手機螢幕太小 */
+        max-width: 80vw !important;   
         border-radius: 30px !important;
         font-weight: bold !important;
         padding: 10px 0 !important;
@@ -333,50 +333,54 @@ st.markdown("""
     }
 
     /* ========================================================
-       3. 相簿導航列 (同一排 + 60px)
-       全場唯一使用 st.columns 的地方！
+       3. 相簿導航列 (解決按鈕分太開、凸出螢幕的問題)
        ======================================================== */
-    /* 強制將這個區塊保持同一排、不換行並整體居中 */
+    /* 讓裝有按鈕的橫向區塊，寬度「剛好包住內容」(fit-content)，並且整體置中 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; 
+        flex-wrap: nowrap !important; /* 絕對不換行 */
         justify-content: center !important;
         align-items: center !important;
-        width: 100% !important;
-        max-width: 250px !important; /* 將整個導航區塊限制在中間 */
-        margin: 15px auto !important;
-        gap: 10px !important;
+        width: fit-content !important; /* <--- 最關鍵！不允許它撐滿 100% 螢幕 */
+        max-width: 100% !important;
+        margin: 15px auto !important;  /* 讓整個短區塊在螢幕正中央 */
+        gap: 15px !important;          /* 三個元件之間的固定間距 */
+        padding: 0 !important;
     }
 
+    /* 覆蓋 Streamlit 給欄位加上的自動 33% 寬度 */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
         width: auto !important;
-        flex: none !important;
+        flex: 0 0 auto !important; /* 不准伸展、不准縮水 */
         min-width: 0 !important;
         padding: 0 !important;
     }
 
-    /* 左、右按鈕容器鎖定 60px */
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1),
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) {
-        width: 60px !important;
-    }
-
-    /* 中間頁碼容器鎖定 80px 空間，並強制置中 */
+    /* 中間頁碼容器：給予固定寬度，確保兩邊對稱 */
     div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) {
-        width: 80px !important;
+        width: 60px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 圓角按鈕 */
-    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] > button {
+    /* 覆蓋大按鈕的設定，讓這兩個導航按鈕精準變成 60px 的精緻圓角按鈕 */
+    div[data-testid="stHorizontalBlock"] [data-testid="stButton"] {
+        width: 60px !important;
+        margin: 0 !important;
+    }
+    div[data-testid="stHorizontalBlock"] [data-testid="stButton"] > button {
         width: 60px !important;
         min-width: 60px !important;
         max-width: 60px !important;
-        padding: 5px 0 !important;
-        border-radius: 15px !important;
+        height: 40px !important; /* 稍微扁一點的圓角矩形 */
+        padding: 0 !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 !important;
     }
 
     /* 隱藏原生元素 */
@@ -405,7 +409,7 @@ if 'prev_stage' not in st.session_state:
     st.session_state.prev_stage = -1
 
 # -----------------------------------------------------------------------------
-# 4. 照片轉 Base64 顯示函式 (解決照片跑版的核心)
+# 4. 照片轉 Base64 顯示函式 (絕對置中的保證)
 # -----------------------------------------------------------------------------
 def get_image_html(image_path):
     try:
@@ -504,8 +508,7 @@ def show_ticket():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # 【關鍵修改】加上 use_container_width=True 讓 CSS 的 margin 魔法生效！
-    if st.button("🛫 起飛", type="primary", use_container_width=True):
+    if st.button("🛫 起飛", type="primary"):
         play_flight_animation()
         st.session_state.stage = 1
         st.rerun()
@@ -527,7 +530,7 @@ def show_journey_step(index):
     if current_photo_index >= len(album): current_photo_index = 0
     current_item = album[current_photo_index]
     
-    # 1. 顯示照片 (Base64 絕對置中)
+    # 1. 顯示照片
     st.markdown(get_image_html(current_item['image']), unsafe_allow_html=True)
 
     # 2. 導航按鈕 (全場唯一使用欄位的地方)
@@ -535,7 +538,7 @@ def show_journey_step(index):
         c_prev, c_info, c_next = st.columns(3)
         
         with c_prev:
-            if st.button("❮", key=f"prev_{index}", use_container_width=True):
+            if st.button("❮", key=f"prev_{index}"):
                 st.session_state[idx_key] = (current_photo_index - 1) % len(album)
                 st.rerun()
         
@@ -543,7 +546,7 @@ def show_journey_step(index):
             st.markdown(f"<div style='text-align:center; color:#555; font-weight:bold; font-size:16px;'>{current_photo_index + 1} / {len(album)}</div>", unsafe_allow_html=True)
             
         with c_next:
-            if st.button("❯", key=f"next_{index}", use_container_width=True):
+            if st.button("❯", key=f"next_{index}"):
                 st.session_state[idx_key] = (current_photo_index + 1) % len(album)
                 st.rerun()
 
@@ -558,14 +561,14 @@ def show_journey_step(index):
         """, unsafe_allow_html=True)
     st.write("")
 
-    # 4. 下一步按鈕 【關鍵修改】加上 use_container_width=True
+    # 4. 下一步按鈕
     if index < len(destinations):
-        if st.button("✈️ 下一站", use_container_width=True):
+        if st.button("✈️ 下一站"):
             play_flight_animation()
             st.session_state.stage += 1
             st.rerun()
     else:
-        if st.button("旅程結束", type="primary", use_container_width=True):
+        if st.button("旅程結束", type="primary"):
             play_flight_animation()
             st.session_state.stage = 999
             st.rerun()
@@ -583,14 +586,12 @@ def show_final_surprise():
     """, unsafe_allow_html=True)
     st.write("")
 
-    # 壓軸照片 (Base64)
     final_photo_path = "images/final.jpg" 
     st.markdown(f'<div class="glass-card" style="padding: 10px;">{get_image_html(final_photo_path)}</div>', unsafe_allow_html=True)
 
     st.write("")
 
-    # 重新開始按鈕 【關鍵修改】加上 use_container_width=True
-    if st.button("🔄 再飛一次", use_container_width=True):
+    if st.button("🔄 再飛一次"):
         st.session_state.stage = 0
         st.rerun()
         
